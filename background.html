@@ -1,0 +1,171 @@
+<!--
+  Copyright 2020 Google LLC
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  Note that these code samples being shared are not official Google
+  products and are not formally supported.
+-->
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+  <title>Tag Report</title>
+  <link rel="stylesheet" href="third_party/bootstrap.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="css/background.css">
+</head>
+
+<body>
+  <div class="main">
+    <!-- Settings Panel -->
+    <div class="panel panel-info">
+      <div class="panel-heading">
+        <h3 class="panel-title">Settings</h3>
+      </div>
+      <div class="panel-body">
+        <div class="input-group">
+          <span class="input-group-addon" id="basic-addon1">Domain</span>
+          <input id="domain" type="text" required class="form-control" placeholder="mydomain.com" aria-describedby="basic-addon1">
+        </div>
+        <br />
+        <div class="input-group">
+          <span class="input-group-addon" id="basic-addon1">Depth*</span>
+          <input id="depth" type="text" required class="form-control" value="10" placeholder="10" aria-describedby="basic-addon1">
+        </div>
+        <br />
+        <div class="input-group">
+          <span class="input-group-addon" id="basic-addon1">Load Time (seconds)*</span>
+          <input id="loadTime" type="text" required class="form-control" value="5" placeholder="5" aria-describedby="basic-addon1">
+        </div>
+        <br />
+        <div class="input-group">
+          <span class="input-group-addon" id="basic-addon1">URL suffix</span>
+          <input id="urlsuffix" type="text" class="form-control" value="" placeholder="(Optional) E.g. abc=123&def=456" aria-describedby="basic-addon1">
+        </div>
+        <br />
+        <div class="input-group">
+          <span class="input-group-addon" id="basic-addon1">URL File</span>
+          <input id="fileInput" type="file"  class="form-control" value="" placeholder="(Optional) Upload a file of specifed URLs to scrape" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" aria-describedby="basic-addon1">
+        </div>
+        <br />
+        <div class="notes-panel">
+          <h4>Note:</h4>
+          <ul>
+            <li>
+              <p><strong>gclid</strong> and <strong>gclsrc</strong> values have been generated and will be appended to the starting URL as follows: <strong>https://mysampleurl.com?gclid=<span id="gclid"></span>&gclsrc=<span id="gclsrc"></span></strong></p>
+            </li>
+          </ul>
+          <h4>Disclaimer:</h4>
+          <ul>
+            <li><p>You may notice a drop in site performance during the audit, this is due to the volume of network requests being processed by the tool for each page.</p></li>
+          </ul>
+        </div>
+        <br/>
+        <div style="padding: 8px">
+          <input type="checkbox" id="enable_manual" name="fancy-checkbox-primary" id="fancy-checkbox-primary" autocomplete="off"> Enable Manual Mode
+        </div>
+        <div style="padding: 8px">
+          <input type="checkbox" id="enable_tag_verification" name="fancy-checkbox-primary" id="fancy-checkbox-primary" autocomplete="off"> Enable Global Site Tag Verification
+        </div>
+        <div id="enable_tag_parent" style="padding: 8px" class="hidden">
+          <input type="checkbox" id="enable_tag_reset" name="fancy-checkbox-primary" id="fancy-checkbox-primary" autocomplete="off"> Reset Global Site Tag Per Webpage
+        </div>
+        <div style="padding: 8px">
+          <input type="checkbox" id="show_no_floodlight" name="fancy-checkbox-primary" id="fancy-checkbox-primary" autocomplete="off"> Show Pages with No Conversion Tags
+        </div>
+        <br/>
+        <button id="run" type="button" class="btn btn-default btn-lg">
+          <span aria-hidden="true"></span> Run
+        </button>
+        <button id="stop" style="display:none" type="button" class="btn btn-default btn-lg">
+          <span aria-hidden="true"></span> Stop
+        </button>
+        <button id="download" type="button" class="btn btn-default btn-lg">
+          <span aria-hidden="true"></span> Download
+        </button>
+      </div>
+    </div>
+    <!-- Stats Panel -->
+    <div id="stats-panel" class="panel panel-info">
+      <div class="panel-heading">
+        <h3 class="panel-title">Stats</h3>
+      </div>
+      <div class="panel-body">
+        <ul class="nav nav-pills" role="tablist">
+          <li class="spinner" role="presentation">
+            <img id="spinner" style="display:none" src="images/light_blue_material_design_loading.gif" width="60" /><br/>
+          </li>
+          <li role="presentation"><h4>Pages Found: <span id="pages-found" class="badge"></span><br /></h4></li>
+          <li role="presentation"><h4>Pages Visited: <span id="pages-visited" class="badge"></span><br /></h4></li>
+          <li role="presentation"><h4>Tags Found: <span id="floodlight-tags" class="badge"></span></h4></li>
+        </ul>
+      </div>
+    </div>
+    <!-- Global Site Tag Panel -->
+    <div id="global-site-panel" style="display: none" class="panel panel-primary">
+      <div class="panel-heading">
+        <h3 class="panel-title">Global Site Tag Verification </h3>
+      </div>
+      <div class="panel-body" style="max-height: 350px; overflow-y: auto">
+        <table id="network-call" class="table" >
+          <thead>
+              <tr>
+                <th>URL</th>
+                <th>AccountID(s)</th>
+                <th>Cookie(s)</th>
+              </tr>
+            </thead>
+            <tbody id="network-call-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Tag Panel -->
+    <div id="floodlight-site-panel" class="panel panel-primary">
+      <div class="panel-heading">
+        <h3 class="panel-title">Conversion Tag Report</h3>
+      </div>
+      <!-- Tag Table -->
+      <div class="panel-body" style="max-height: 500px; overflow-x: auto">
+        <table id="floodlight-dcm-report-table" class="table">
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Tag Type</th>
+              <th>Account Id</th>
+              <th>gTag (T/F)</th>
+              <th>Network Call</th>
+              <th>Floodlight ID</th>
+              <th>Floodlight Activity Tag</th>
+              <th>Floodlight Activity Group</th>
+              <th>Floodlight Sales Order</th>
+              <th>Floodlight uVariables</th>
+              <th>Warnings</th>
+              <th>Errors</th>
+            </tr>
+          </thead>
+          <tbody id="floodlight-dcm-report-body"></tbody>
+        </table>
+      </div>
+      <!-- Tag Table -->
+    </div>
+  </div>
+  <script src="third_party/jquery.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/globalSiteTagVerification.js"></script>
+  <script src="js/floodlightTracker.js"></script>
+  <script src="js/web-crawler.js"></script>
+  <script src="js/network-monitor.js"></script>
+  <script src="js/ui-controller.js"></script>
+</body>
